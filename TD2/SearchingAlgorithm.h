@@ -17,10 +17,10 @@ public:
     virtual int search(const vector<int>& , int) = 0;
     int displaySearchResults(ostream& os, int target, int results);
 
-    int static totalComparisons, totalSearch;
-    double static averageComparisons; // mean -> double
+    static int totalComparisons, totalSearch;
+    static double averageComparisons; // mean -> double
 
-private:
+protected:
     int numberComparisons;
 
 };
