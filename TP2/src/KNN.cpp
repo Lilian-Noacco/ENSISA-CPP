@@ -2,81 +2,91 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#include "KNN.hpp"
-#include <cmath>
+#include "../include/KNN.hpp"
+#include "../include/Similarity.hpp"
 #include <algorithm>
-#include <vector>
-#include <limits>
 #include <map>
+#include <stdexcept>
 
-KNN::KNN(int k, string similarity_measure)
-    : k(k), similarity_measure(similarity_measure) {}
-
-double KNN::euclidean_distance(const vector<double>& a, const vector<double>& b) {
-    double sum = 0.0;
-    int len = min(a.size(), b.size());
-    for(int i = 0; i < len; ++i) {
-        sum += pow(a[i] - b[i], 2);
-    }
-    return sqrt(sum);
+KNN::KNN(int k_val, const string &metric) : k(k_val), similarity_measure(metric)
+{
 }
 
-double KNN::dtw(const vector<double>& x, const vector<double>& y) {
-    int L = x.size();
-    int M = y.size();
+KNN::~KNN()
+{
+}
 
-    vector<vector<double>> D(L + 1, vector<double>(M + 1, numeric_limits<double>::infinity()));
+double KNN::calculateDistance(const vector<double> &a, const vector<double> &b) const
+{
+    if (similarity_measure == "dtw") return dtw_distance(a, b);
+    if (similarity_measure == "edr") return edit_distance_real_sequences(a, b);
+    return euclidean_distance(a, b);
+}
 
-    D[0][0] = 0;
+int KNN::predict(const vector<double> &series,
+                 const vector<vector<double>> &trainData,
+                 const vector<int> &trainLabels) const
+{
+    vector<pair<double, int>> distances;
+    distances.reserve(trainData.size());
 
-    for (int i = 1; i <= L; ++i) {
-        for (int j = 1; j <= M; ++j) {
-            double cost = pow(x[i - 1] - y[j - 1], 2);
-            D[i][j] = cost + min({D[i - 1][j], D[i][j - 1], D[i - 1][j - 1]});
+    for (size_t i = 0; i < trainData.size(); ++i)
+    {
+        distances.push_back({calculateDistance(series, trainData[i]), trainLabels[i]});
+    }
+
+    sort(distances.begin(), distances.end(), [](const auto &a, const auto &b) {
+        return a.first < b.first;
+    });
+
+    map<int, int> counts;
+    int limit = min(k, static_cast<int>(distances.size()));
+    for (int i = 0; i < limit; ++i)
+    {
+        counts[distances[i].second]++;
+    }
+
+    int bestLabel = -1;
+    int maxCount = -1;
+    for (const auto &p : counts)
+    {
+        if (p.second > maxCount)
+        {
+            maxCount = p.second;
+            bestLabel = p.first;
         }
     }
-
-    return sqrt(D[L][M]);
+    return bestLabel;
 }
 
-double KNN::evaluate(const TimeSeriesDataset& trainData, const TimeSeriesDataset& testData, const vector<int>& ground_truth) {
+double KNN::evaluate(const TimeSeriesDataset &trainData,
+                     const TimeSeriesDataset &testData,
+                     const vector<int> &groundTruth)
+{
+    const auto &trainSamples = trainData.getData();
+    const auto &trainLabels = trainData.getLabels();
+    const auto &testSamples = testData.getData();
+
     int correct = 0;
-    int total = testData.getNumberOfSamples();
-
-    for (int i = 0; i < total; ++i) {
-        const vector<double>& testSeries = testData.getData(i);
-        vector<pair<double, int>> distances;
-
-        for (int j = 0; j < trainData.getNumberOfSamples(); ++j) {
-            double dist = 0.0;
-            if (similarity_measure == "dtw") {
-                dist = dtw(testSeries, trainData.getData(j));
-            } else {
-                dist = euclidean_distance(testSeries, trainData.getData(j));
-            }
-            distances.push_back({dist, trainData.getLabel(j)});
-        }
-
-        sort(distances.begin(), distances.end());
-
-        map<int, int> classCounts;
-        for (int n = 0; n < k && n < distances.size(); ++n) {
-            classCounts[distances[n].second]++;
-        }
-
-        int predictedClass = -1;
-        int maxCount = -1;
-        for (auto const& [label, count] : classCounts) {
-            if (count > maxCount) {
-                maxCount = count;
-                predictedClass = label;
-            }
-        }
-
-        if (predictedClass == ground_truth[i]) {
+    for (size_t i = 0; i < testSamples.size(); ++i)
+    {
+        int prediction = predict(testSamples[i], trainSamples, trainLabels);
+        if (prediction == groundTruth[i])
+        {
             correct++;
         }
     }
 
-    return (double)correct / total;
+    return (testSamples.empty()) ? 0.0 : static_cast<double>(correct) / testSamples.size();
+}
+
+ostream &KNN::PrintOn(ostream &os) const
+{
+    os << "KNN Classifier (k=" << k << ", Metric=" << similarity_measure << ")";
+    return os;
+}
+
+ostream &operator<<(ostream &os, const KNN &knn)
+{
+    return knn.PrintOn(os);
 }

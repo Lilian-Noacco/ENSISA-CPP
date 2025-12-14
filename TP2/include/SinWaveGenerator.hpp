@@ -2,20 +2,26 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#ifndef TP2_SINWAVEGENERATOR_HPP
-#define TP2_SINWAVEGENERATOR_HPP
+#ifndef SINWAVEGENERATOR_H
+#define SINWAVEGENERATOR_H
 
 #include "TimeSeriesGenerator.hpp"
 
-class SinWaveGenerator : public TimeSeriesGenerator {
+using namespace std;
+
+class SinWaveGenerator : public TimeSeriesGenerator
+{
 public:
-    SinWaveGenerator(int seed, double A, double w, double phi);
-    vector<double> generateTimeSeries(int size) const override;
+    SinWaveGenerator(double amplitude, double frequency, double phase, int seed);
+    SinWaveGenerator();
+    virtual ~SinWaveGenerator();
+
+    virtual vector<double> generateTimeSeries(int length) const override;
 
 private:
-    double A;
-    double w;
-    double phi;
+    double amplitude;
+    double frequency;
+    double phase;
 };
 
 #endif

@@ -4,19 +4,31 @@
 
 #include "../include/SinWaveGenerator.hpp"
 #include <cmath>
-#include <cstdlib>
 
-SinWaveGenerator::SinWaveGenerator(int seed, double A, double w, double phi)
-    : TimeSeriesGenerator(seed), A(A), w(w), phi(phi) {
+SinWaveGenerator::SinWaveGenerator(double a, double f, double p, int s)
+    : TimeSeriesGenerator(s), amplitude(a), frequency(f), phase(p)
+{
 }
 
-vector<double> SinWaveGenerator::generateTimeSeries(int size) const {
-    vector<double> series;
-    series.reserve(size);
+SinWaveGenerator::SinWaveGenerator()
+    : TimeSeriesGenerator(0), amplitude(1.0), frequency(1.0), phase(0.0)
+{
+}
 
-    for(int i = 0; i < size; ++i) {
-        double value = A * sin(w * i + phi);
-        series.push_back(value);
+SinWaveGenerator::~SinWaveGenerator()
+{
+}
+
+vector<double> SinWaveGenerator::generateTimeSeries(int length) const
+{
+    vector<double> out;
+    if (length <= 0) return out;
+    out.reserve(length);
+
+    for (int x = 0; x < length; ++x)
+    {
+        double val = amplitude * sin(frequency * static_cast<double>(x) + phase);
+        out.push_back(val);
     }
-    return series;
+    return out;
 }

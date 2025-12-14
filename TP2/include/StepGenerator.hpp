@@ -2,16 +2,22 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#ifndef TP2_STEPGENERATOR_HPP
-#define TP2_STEPGENERATOR_HPP
+#ifndef STEPGENERATOR_H
+#define STEPGENERATOR_H
 
 #include "TimeSeriesGenerator.hpp"
+#include <cstdlib>
 
-class StepGenerator : public TimeSeriesGenerator {
+using namespace std;
+
+class StepGenerator : public TimeSeriesGenerator
+{
 public:
-    StepGenerator();
     StepGenerator(int seed);
-    vector<double> generateTimeSeries(int size) const override;
+    StepGenerator();
+    virtual ~StepGenerator();
+
+    virtual vector<double> generateTimeSeries(int length) const override;
 };
 
 #endif

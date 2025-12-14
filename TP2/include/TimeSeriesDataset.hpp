@@ -2,34 +2,38 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#ifndef TP2_TIMESERIESDATASET_HPP
-#define TP2_TIMESERIESDATASET_HPP
+#ifndef TIMESERIESDATASET_H
+#define TIMESERIESDATASET_H
 
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
-class TimeSeriesDataset {
+class TimeSeriesDataset
+{
 public:
-    TimeSeriesDataset(bool znormalize, bool isTrain);
+    TimeSeriesDataset(bool znormalize = false, bool isTrain = false);
+    virtual ~TimeSeriesDataset();
 
-    void addTimeSeries(const vector<double>& series, int label);
-    void addTimeSeries(const vector<double>& series);
+    void addTimeSeries(const vector<double> &series, int label);
+    void addTimeSeries(const vector<double> &series);
 
-    int getNumberOfSamples() const;
-    int getMaxLength() const;
-    const vector<double>& getData(int index) const;
-    int getLabel(int index) const;
+    const vector<vector<double>> &getData() const;
+    const vector<int> &getLabels() const;
+
+    virtual ostream &PrintOn(ostream &os) const;
+    friend ostream &operator<<(ostream &os, const TimeSeriesDataset &dataset);
 
 private:
+    vector<double> zNormalize(const vector<double> &series) const;
+
     bool znormalize;
     bool isTrain;
     vector<vector<double>> data;
     vector<int> labels;
     int maxLength;
     int numberOfSamples;
-
-    vector<double> zNormalizeSeries(const vector<double>& series) const;
 };
 
 #endif

@@ -2,19 +2,26 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#include "TimeSeriesGenerator.hpp"
+#include "../include/TimeSeriesGenerator.hpp"
 
-TimeSeriesGenerator::TimeSeriesGenerator() : seed(0) {}
+TimeSeriesGenerator::TimeSeriesGenerator() : seed(0)
+{
+}
 
-TimeSeriesGenerator::TimeSeriesGenerator(int seed) : seed(seed) {}
+TimeSeriesGenerator::TimeSeriesGenerator(int s) : seed(s)
+{
+}
 
-int TimeSeriesGenerator::getSeed() const {
+int TimeSeriesGenerator::getSeed() const
+{
     return seed;
 }
 
-void TimeSeriesGenerator::printTimeSeries(const vector<double>& series) {
-    for (const double& value : series) {
-        cout << value << " ";
+void TimeSeriesGenerator::printTimeSeries(const vector<double> &series)
+{
+    for (double val : series)
+    {
+        cout << val << " ";
     }
     cout << endl;
 }

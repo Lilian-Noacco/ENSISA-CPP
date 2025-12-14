@@ -2,25 +2,37 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#ifndef TP2_KNN_HPP
-#define TP2_KNN_HPP
+#ifndef KNN_H
+#define KNN_H
 
 #include "TimeSeriesDataset.hpp"
 #include <string>
+#include <vector>
 
 using namespace std;
 
-class KNN {
+class KNN
+{
 public:
-    KNN(int k, string similarity_measure);
-    double evaluate(const TimeSeriesDataset& trainData, const TimeSeriesDataset& testData, const vector<int>& ground_truth);
+    KNN(int k, const string &metric);
+    virtual ~KNN();
+
+    double evaluate(const TimeSeriesDataset &trainData,
+                    const TimeSeriesDataset &testData,
+                    const vector<int> &groundTruth);
+
+    int predict(const vector<double> &series,
+                const vector<vector<double>> &trainData,
+                const vector<int> &trainLabels) const;
+
+    virtual ostream &PrintOn(ostream &os) const;
+    friend ostream &operator<<(ostream &os, const KNN &knn);
 
 private:
     int k;
     string similarity_measure;
 
-    double euclidean_distance(const vector<double>& a, const vector<double>& b);
-    double dtw(const vector<double>& a, const vector<double>& b);
+    double calculateDistance(const vector<double> &a, const vector<double> &b) const;
 };
 
 #endif

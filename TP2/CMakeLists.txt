@@ -6,9 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(include)
 
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-
-add_executable(TP2 ${SOURCES}
+add_executable(TP2
+        src/main.cpp
         src/TimeSeriesGenerator.cpp
         include/TimeSeriesGenerator.hpp
         src/GaussianGenerator.cpp
@@ -20,4 +19,6 @@ add_executable(TP2 ${SOURCES}
         src/TimeSeriesDataset.cpp
         include/TimeSeriesDataset.hpp
         src/KNN.cpp
-        include/KNN.hpp)
+        include/KNN.hpp
+        src/Similarity.cpp
+        include/Similarity.hpp)

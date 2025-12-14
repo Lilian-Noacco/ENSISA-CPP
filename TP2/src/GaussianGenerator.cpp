@@ -2,27 +2,59 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#include "GaussianGenerator.hpp"
+#include "../include/GaussianGenerator.hpp"
 #include <cmath>
+#include <limits>
 #include <cstdlib>
 
-GaussianGenerator::GaussianGenerator(int seed, double mean, double stdDev)
-    : TimeSeriesGenerator(seed), mean(mean), stdDev(stdDev) {
-    srand(seed);
+GaussianGenerator::GaussianGenerator(int m, int sd, int s)
+    : TimeSeriesGenerator(s), mean(m), standardDeviation(sd)
+{
+    srand(s);
 }
 
-vector<double> GaussianGenerator::generateTimeSeries(int size) const {
-    vector<double> series;
-    series.reserve(size);
+GaussianGenerator::GaussianGenerator() : TimeSeriesGenerator(0), mean(0), standardDeviation(1)
+{
+    srand(0);
+}
 
-    for (int i = 0; i < size; ++i) {
-        double u1 = (double)rand() / RAND_MAX;
-        double u2 = (double)rand() / RAND_MAX;
+GaussianGenerator::~GaussianGenerator()
+{
+}
 
-        double z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
-        double value = mean + stdDev * z0;
-
-        series.push_back(value);
+double GaussianGenerator::boxMullerSample() const
+{
+    if (hasSpare)
+    {
+        hasSpare = false;
+        return spare * mean + standardDeviation;
     }
-    return series;
+
+    double u1, u2;
+    do
+    {
+        u1 = static_cast<double>(rand()) / RAND_MAX;
+    } while (u1 <= numeric_limits<double>::min());
+    u2 = static_cast<double>(rand()) / RAND_MAX;
+
+    const double two_pi = 2.0 * 3.14159265358979323846;
+    double mag = sqrt(-2.0 * log(u1));
+    double z0 = mag * cos(two_pi * u2);
+    double z1 = mag * sin(two_pi * u2);
+
+    spare = z1;
+    hasSpare = true;
+
+    return z0 * standardDeviation + mean;
+}
+
+vector<double> GaussianGenerator::generateTimeSeries(int length) const
+{
+    vector<double> out;
+    out.reserve(length);
+    for (int i = 0; i < length; ++i)
+    {
+        out.push_back(boxMullerSample());
+    }
+    return out;
 }

@@ -2,70 +2,65 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#include "TimeSeriesDataset.hpp"
-#include <cmath>
+#include "../include/TimeSeriesDataset.hpp"
 #include <numeric>
+#include <cmath>
 
-TimeSeriesDataset::TimeSeriesDataset(bool znormalize, bool isTrain)
-    : znormalize(znormalize), isTrain(isTrain), maxLength(0), numberOfSamples(0) {}
-
-void TimeSeriesDataset::addTimeSeries(const vector<double>& series, int label) {
-    addTimeSeries(series);
-    labels.push_back(label);
+TimeSeriesDataset::TimeSeriesDataset(bool znorm, bool train)
+    : znormalize(znorm), isTrain(train), maxLength(0), numberOfSamples(0)
+{
 }
 
-void TimeSeriesDataset::addTimeSeries(const vector<double>& series) {
-    if (series.size() > maxLength) {
-        maxLength = series.size();
-    }
-
-    if (znormalize) {
-        data.push_back(zNormalizeSeries(series));
-    } else {
-        data.push_back(series);
-    }
-
-    numberOfSamples++;
+TimeSeriesDataset::~TimeSeriesDataset()
+{
 }
 
-vector<double> TimeSeriesDataset::zNormalizeSeries(const vector<double>& series) const {
+const vector<vector<double>> &TimeSeriesDataset::getData() const { return data; }
+const vector<int> &TimeSeriesDataset::getLabels() const { return labels; }
+
+vector<double> TimeSeriesDataset::zNormalize(const vector<double> &series) const
+{
+    if (series.empty()) return series;
+
     double sum = accumulate(series.begin(), series.end(), 0.0);
     double mean = sum / series.size();
 
     double sq_sum = 0.0;
-    for (double val : series) {
-        sq_sum += (val - mean) * (val - mean);
-    }
-    double stdDev = sqrt(sq_sum / series.size());
+    for (double val : series) sq_sum += (val - mean) * (val - mean);
+
+    double stddev = sqrt(sq_sum / series.size());
+    if (stddev < 1e-10) stddev = 1.0;
 
     vector<double> normalized;
     normalized.reserve(series.size());
+    for (double val : series) normalized.push_back((val - mean) / stddev);
 
-    if (stdDev == 0) {
-        return series;
-    }
-
-    for (double val : series) {
-        normalized.push_back((val - mean) / stdDev);
-    }
     return normalized;
 }
 
-int TimeSeriesDataset::getNumberOfSamples() const {
-    return numberOfSamples;
+void TimeSeriesDataset::addTimeSeries(const vector<double> &series, int label)
+{
+    vector<double> toAdd = znormalize ? zNormalize(series) : series;
+    data.push_back(toAdd);
+    labels.push_back(label);
+
+    if (static_cast<int>(toAdd.size()) > maxLength) maxLength = static_cast<int>(toAdd.size());
+    numberOfSamples++;
 }
 
-int TimeSeriesDataset::getMaxLength() const {
-    return maxLength;
+void TimeSeriesDataset::addTimeSeries(const vector<double> &series)
+{
+    addTimeSeries(series, -1);
 }
 
-const vector<double>& TimeSeriesDataset::getData(int index) const {
-    return data[index];
+ostream &TimeSeriesDataset::PrintOn(ostream &os) const
+{
+    os << "Dataset (" << (isTrain ? "Train" : "Test") << ") - Samples: " << numberOfSamples
+       << ", MaxLength: " << maxLength << ", Z-Norm: " << (znormalize ? "On" : "Off");
+    return os;
 }
 
-int TimeSeriesDataset::getLabel(int index) const {
-    if (index < labels.size()) {
-        return labels[index];
-    }
-    return -1;
+ostream &operator<<(ostream &os, const TimeSeriesDataset &ds)
+{
+    return ds.PrintOn(os);
 }

@@ -2,26 +2,45 @@
 // Created by Lilian Noacco on 12/12/2025.
 //
 
-#include "StepGenerator.hpp"
+#include "../include/StepGenerator.hpp"
 #include <cstdlib>
 
-StepGenerator::StepGenerator() : TimeSeriesGenerator() {}
-
-StepGenerator::StepGenerator(int seed) : TimeSeriesGenerator(seed) {
-    srand(seed);
+StepGenerator::StepGenerator(int s)
+    : TimeSeriesGenerator(s)
+{
+    srand(s);
 }
 
-vector<double> StepGenerator::generateTimeSeries(int size) const {
-    vector<double> series;
-    series.reserve(size);
-    double currentValue = 0;
-    series.push_back(currentValue);
+StepGenerator::StepGenerator()
+    : TimeSeriesGenerator(0)
+{
+    srand(0);
+}
 
-    for(int i = 1; i < size; ++i) {
-        if(rand() % 2 == 0) {
-            currentValue = rand() % 101;
+StepGenerator::~StepGenerator()
+{
+}
+
+vector<double> StepGenerator::generateTimeSeries(int length) const
+{
+    vector<double> out;
+    if (length <= 0) return out;
+    out.reserve(length);
+
+    double prev = 0;
+    out.push_back(prev);
+
+    for (int i = 1; i < length; ++i)
+    {
+        if (rand() % 2 == 0)
+        {
+            out.push_back(prev);
         }
-        series.push_back(currentValue);
+        else
+        {
+            prev = static_cast<double>(rand() % 101);
+            out.push_back(prev);
+        }
     }
-    return series;
+    return out;
 }
